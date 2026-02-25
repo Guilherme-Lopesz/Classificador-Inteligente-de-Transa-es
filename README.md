@@ -1,7 +1,7 @@
 
 # 📊 Giro · Classificador Inteligente de Transações
 
-O **Giro** é uma solução inteligente para a organização de finanças pessoais e empresariais. Ele transforma arquivos de extratos bancários (CSV/TXT) – frequentemente confusos e poluídos – em dados categorizados e prontos para análise, utilizando o poder da Inteligência Artificial (**Google Gemini 1.5 Flash**) e um sistema robusto de heurísticas locais.
+O **Giro · Classificador Inteligente de Transações** é uma solução estratégica para a organização de finanças pessoais e empresariais. Ele transforma arquivos de extratos bancários (CSV/TXT) – frequentemente confusos e poluídos – em dados categorizados e prontos para análise.
 
 ## 📋 Sumário
 
@@ -16,7 +16,7 @@ O **Giro** é uma solução inteligente para a organização de finanças pessoa
 
 ## 🎯 Visão Geral
 
-O Giro permite que usuários façam upload de extratos bancários, recebam sugestões de categorias via IA e ajustem manualmente quando necessário. Tudo isso com foco em privacidade, performance e usabilidade.
+O Giro · Classificador Inteligente de Transações permite que usuários façam upload de extratos bancários, recebam sugestões de categorias via IA e ajustem manualmente quando necessário. Tudo isso com foco em privacidade, performance e usabilidade.
 
 ### Funcionalidades Principais
 
@@ -56,7 +56,7 @@ O Giro permite que usuários façam upload de extratos bancários, recebam suges
 
 3. **Instale as dependências**
    ```bash
-   pip install flask pandas google-genai python-dotenv
+   pip install flask pandas google-genai python-dotenv ou baixe pelo requirements
    ```
 
 4. **Configure as variáveis de ambiente**  
@@ -134,4 +134,3 @@ O Giro permite que usuários façam upload de extratos bancários, recebam suges
 - **Open Banking:** Conexão direta com APIs bancárias para importação automática.
 - **Metas de Gastos (Budgets):** Permitir que o usuário defina limites por categoria e receba alertas.
 - **Multi‑Moeda:** Suporte a transações em dólar/euro com conversão automática via API de cotação.
-- **Tornar o Projeto mais escalonável com melhorias na criptografia de senha, no banco de Dados
