@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giro · Classificador Inteligente de Transações</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: #f3f6fd;
+            color: #1e293b;
+            transition: background 0.3s, color 0.3s;
+            padding: 2rem 1.5rem;
+        }
+
+        body.dark-mode {
+            background: #0b1120;
+            color: #e2e8f0;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-area h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1e3a5f, #2563eb);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            transition: background 0.3s;
+        }
+
+        body.dark-mode .user-area {
+            background: #1e293b;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .user-greeting {
+            font-weight: 500;
+        }
+
+        .theme-btn, .logout-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            transition: 0.2s;
+            color: inherit;
+        }
+
+        .theme-btn:hover, .logout-btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        body.dark-mode .theme-btn:hover,
+        body.dark-mode .logout-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem 1.2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            transition: background 0.3s, box-shadow 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        body.dark-mode .stat-card {
+            background: #1e293b;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            background: #eef2ff;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body.dark-mode .stat-icon {
+            background: #334155;
+        }
+
+        .stat-content h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #64748b;
+            margin-bottom: 0.2rem;
+        }
+
+        body.dark-mode .stat-content h3 {
+            color: #94a3b8;
+        }
+
+        .stat-content .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        /* Chart Card */
+        .chart-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            transition: background 0.3s;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        body.dark-mode .chart-card {
+            background: #1e293b;
+        }
+
+        .chart-container {
+            flex: 1 1 300px;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+
+        .chart-info {
+            flex: 1 1 200px;
+            text-align: left;
+        }
+
+        .chart-info h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #0f172a;
+        }
+
+        body.dark-mode .chart-info h3 {
+            color: #f1f5f9;
+        }
+
+        .chart-info p {
+            color: #475569;
+            font-size: 0.95rem;
+        }
+
+        body.dark-mode .chart-info p {
+            color: #94a3b8;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: white;
+            border-radius: 30px;
+            padding: 1rem 1.8rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            transition: background 0.3s;
+        }
+
+        body.dark-mode .toolbar {
+            background: #1e293b;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            color: #334155;
+        }
+
+        body.dark-mode .filter-group label {
+            color: #cbd5e1;
+        }
+
+        select, input[type="file"] {
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        body.dark-mode select,
+        body.dark-mode input[type="file"] {
+            background: #0f172a;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            border: 1px solid transparent;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: 0.2s;
+            background: white;
+            border-color: #cbd5e1;
+        }
+
+        body.dark-mode .btn {
+            background: #334155;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+
+        .btn-primary {
+            background: #1e3a5f;
+            color: white;
+            border-color: #1e3a5f;
+        }
+
+        .btn-primary:hover {
+            background: #14304e;
+        }
+
+        .btn-confirm {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .btn-confirm:hover {
+            background: #0d9f6e;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+            border-color: #f59e0b;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: #cbd5e1;
+        }
+
+        .btn-outline:hover {
+            background: #f1f5f9;
+        }
+
+        body.dark-mode .btn-outline:hover {
+            background: #475569;
+        }
+
+        .batch-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        /* Table */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 24px;
+            background: white;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            transition: background 0.3s;
+        }
+
+        body.dark-mode .table-wrapper {
+            background: #1e293b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            min-width: 1000px;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #334155;
+            font-weight: 600;
+            padding: 1rem 1.2rem;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        body.dark-mode th {
+            background: #0f172a;
+            color: #cbd5e1;
+        }
+
+        td {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        body.dark-mode td {
+            border-bottom-color: #334155;
+        }
+
+        tr.confirmed-row {
+            background-color: #f8fafc;
+        }
+
+        body.dark-mode tr.confirmed-row {
+            background-color: #0f172a;
+        }
+
+        .amount-positive {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .amount-negative {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .confidence-cell {
+            font-weight: 600;
+            text-align: center;
+            border-radius: 30px;
+            width: 80px;
+        }
+
+        .confidence-high {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .confidence-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .confidence-low {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        body.dark-mode .confidence-high {
+            background: #065f46;
+            color: #d1fae5;
+        }
+
+        body.dark-mode .confidence-medium {
+            background: #92400e;
+            color: #fef3c7;
+        }
+
+        body.dark-mode .confidence-low {
+            background: #991b1b;
+            color: #fee2e2;
+        }
+
+        .badge-status {
+            padding: 0.25rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-confirmed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        body.dark-mode .badge-pending {
+            background: #7c2d12;
+            color: #fed7aa;
+        }
+
+        body.dark-mode .badge-confirmed {
+            background: #064e3b;
+            color: #a7f3d0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .edit-form-container {
+            background: #f8fafc;
+            padding: 0.8rem;
+            border-radius: 20px;
+            margin-top: 0.5rem;
+        }
+
+        body.dark-mode .edit-form-container {
+            background: #0f172a;
+        }
+
+        .confirm-form-container {
+            background: #f8fafc;
+            padding: 0.8rem;
+            border-radius: 20px;
+            margin-top: 0.5rem;
+        }
+
+        body.dark-mode .confirm-form-container {
+            background: #0f172a;
+        }
+
+        #form-manual h3 {
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+
+        body.dark-mode #form-manual h3 {
+            color: #f1f5f9;
+        }
+
+        .flash-messages {
+            margin-bottom: 1.5rem;
+        }
+
+        .flash {
+            padding: 0.9rem 1.5rem;
+            border-radius: 40px;
+            background: #e2e8f0;
+            border-left: 6px solid transparent;
+            font-weight: 500;
+            position: relative;
+            padding-right: 2.5rem;
+        }
+
+        .flash.success {
+            background: #d1fae5;
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+
+        .flash.error {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .flash.info {
+            background: #dbeafe;
+            border-left-color: #3b82f6;
+            color: #1e40af;
+        }
+
+                /* =========================================
+        FIX: MODAL ADICIONAR MANUALMENTE (DARK MODE)
+        ========================================= */
+        body.dark-mode #modal-add .edit-form-container {
+            background: #1e293b !important;
+            border: 1px solid #334155 !important;
+        }
+
+        body.dark-mode #modal-add h3 {
+            color: #f1f5f9 !important;
+        }
+
+        /* Estilo padrão para os novos inputs */
+        input[type="date"], input[type="number"] {
+            padding: 0.6rem 1rem; 
+            border-radius: 12px; 
+            border: 1px solid #cbd5e1; 
+            background: #f8fafc; 
+            font-size: 0.95rem; 
+            outline: none;
+            color: #1e293b;
+            width: 100%;
+        }
+
+        /* Forçando as cores corretas no Dark Mode */
+        body.dark-mode input[type="date"], body.dark-mode input[type="number"] {
+            background: #0f172a !important; 
+            border-color: #334155 !important; 
+            color: #f1f5f9 !important;
+        }
+
+        /* Truque de Sênior: Fazer o ícone do calendário ficar branco no Dark Mode */
+        body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+
+        .flash-close {
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0.7;
+        }
+
+        .flash-close:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-area">
+            <h1> Giro · Classificador Inteligente de Transações </h1>
+        </div>
+        <div class="user-area">
+            <span class="user-greeting">👋 {{ session.get('user_nome') or session.get('user_email', 'Usuário').split('@')[0] }}</span>
+            <button class="theme-btn" onclick="toggleTheme()" title="Alternar tema">🌓</button>
+            <a href="/logout" class="logout-btn" title="Sair">🚪</a>
+        </div>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash {{ category if category in ['success', 'error', 'info'] else 'info' }}" id="flash-{{ loop.index }}">
+                    <span>{{ message }}</span>
+                    <button class="flash-close" onclick="fecharFlash(this)">&times;</button>
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Stats Cards (dynamic via JS) -->
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <!-- Chart Card -->
+    {% if labels_chart and labels_chart|length > 0 %}
+    <div class="chart-card">
+        <div class="chart-container">
+            <canvas id="categoryChart" style="width:100%; max-height:250px;"></canvas>
+        </div>
+        <div class="chart-info">
+            <h3>Gastos por Categoria</h3>
+            <p>Distribuição dos valores confirmados. Clique no gráfico para detalhes.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Toolbar: Filter & Upload -->
+    <div class="toolbar">
+        <div class="filter-group">
+            <label>🔍 Status:</label>
+            <select id="status-filter" aria-label="Filtrar por status">
+                <option value="all">Todas</option>
+                <option value="pending">Pendentes</option>
+                <option value="confirmed">Confirmadas</option>
+            </select>
+        </div>
+        <form class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".csv," multiple required id="csv-file">
+            <button type="submit" class="btn btn-primary">📤 Upload Arquivos</button>
+        </form>
+        <button class="btn btn-primary" onclick="mostrarFormManual()">➕ Adicionar Manual</button>
+        <a href="/categorias" class="btn btn-outline">📁 Categorias</a>
+    </div>
+
+    <!-- Formulário Manual Oculto -->
+    <div id="form-manual" style="display: none; background: rgb(10, 8, 8); padding: 1rem; border-radius: 20px; margin-bottom: 1rem; box-shadow: 0 4px 12px rgb(4, 28, 243);">
+        <h3>Adicionar Transação Manual</h3>
+        <form action="/adicionar" method="POST" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <input type="date" name="data" required style="padding: 0.6rem 1.2rem; border-radius: 40px; border: 1px solid #cbd5e1; background: #f8fafc;">
+            <input type="text" name="descricao" placeholder="Descrição" required style="flex:2; padding: 0.6rem 1.2rem; border-radius: 40px; border: 1px solid #cbd5e1; background: #f8fafc;">
+            <input type="text" name="valor" placeholder="Ex: 45,90 (positivo) ou -45,90 (despesa)" required style="flex:1; padding: 0.6rem 1.2rem; border-radius: 40px; border: 1px solid #cbd5e1; background: #f8fafc;">            
+            <button type="submit" class="btn btn-confirm">Salvar</button>
+            <button type="button" class="btn btn-outline" onclick="fecharFormManual()">Cancelar</button>
+        </form>
+    </div>
+
+    <!-- Batch Actions -->
+    <form action="/acao_lote" method="POST" id="form-lote">
+        <div class="batch-bar">
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" id="check-all" onclick="marcarTodos(this)"> Selecionar todos
+            </label>
+            <button type="submit" name="acao_lote" value="confirmar" class="btn btn-confirm">✅ Confirmar Lote</button>
+            <button type="submit" name="acao_lote" value="excluir" class="btn btn-outline" style="color:#ef4444;" onclick="return confirm('Excluir selecionados?');">🗑️ Excluir Lote</button>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="table-wrapper">
+            <table id="transactions-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"><input type="checkbox" id="check-all-head" onclick="marcarTodos(this)"></th>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                        <th>Categoria IA</th>
+                        <th>Confiança</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if transacoes %}
+                        {% for t in transacoes %}
+                        <tr class="transaction-row {% if t.status == 'confirmed' %}confirmed-row{% endif %}" data-status="{{ t.status }}" data-amount="{{ t.amount }}" data-confirmed-category="{{ t.confirmed_category or '' }}">
+                            
+                            <td><input type="checkbox" name="transacao_ids" value="{{ t.transaction_id }}" class="check-item"></td>
+                            <td>{{ t.date }}</td>
+                            <td><strong>{{ t.description }}</strong></td>
+                            <td class="{{ 'amount-negative' if t.amount < 0 else 'amount-positive' }}">R$ {{ "%.2f"|format(t.amount|abs) }}</td>
+                            
+                            <td>
+                                {% if t.status == 'confirmed' %}
+                                    <span style="color: #10b981; font-weight: 600;">{{ t.confirmed_category }}</span>
+                                {% else %}
+                                    {% if t.suggested_category %}
+                                        {{ t.suggested_category }}
+                                    {% else %}
+                                        <span style="color: #94a3b8; font-style: italic; font-size: 0.85rem;">⏳ Aguardando IA...</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            
+                            <td>
+                                {% if t.status == 'confirmed' %}
+                                    <div class="confidence-cell confidence-high" data-confidence="100">100%</div>
+                                {% else %}
+                                    <div class="confidence-cell" data-confidence="{{ t.suggested_confidence or 0 }}">{{ t.suggested_confidence or 0 }}%</div>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge-status badge-{{ t.status }}">{{ 'Confirmada' if t.status == 'confirmed' else 'Pendente' }}</span></td>
+                            <td class="actions-cell">
+                                {% if t.status == 'pending' %}
+                                    <div class="action-buttons" id="actions-{{ t.transaction_id }}">
+                                        <button type="button" class="btn btn-confirm confirm-btn" data-id="{{ t.transaction_id }}" style="padding:0.3rem 1rem;">✔ Confirmar</button>
+                                        <button type="button" class="btn btn-warning edit-btn" data-id="{{ t.transaction_id }}" style="padding:0.3rem 1rem;">✏️ Editar</button>
+                                        <button type="button" class="btn btn-outline" style="color:#ef4444; padding:0.3rem 1rem;" onclick="enviarAcaoUnica('/excluir', '{{ t.transaction_id }}', null, true)">🗑️</button>
+                                    </div>
+
+                                    <!-- Formulário de confirmação (oculto) -->
+                                    <div class="confirm-form-container" id="confirm-{{ t.transaction_id }}" style="display: none;">
+                                        <div style="margin-bottom:5px;">Confirmar como: <strong>{{ t.suggested_category }}</strong></div>
+                                        <div style="display:flex; align-items:center; gap:5px; margin-bottom:5px;">
+                                            <input type="checkbox" id="confirm-regra-{{ t.transaction_id }}">
+                                            <label for="confirm-regra-{{ t.transaction_id }}">Criar regra para a palavra:</label>
+                                        </div>
+                                        <input type="text" id="confirm-palavra-{{ t.transaction_id }}" value="{{ t.description.split(' ')[0] }}" style="width:100%; margin-bottom:10px; padding:0.5rem; border-radius:30px; border:1px solid #cbd5e1;">
+                                        <div style="display:flex; gap:5px;">
+                                            <button type="button" class="btn btn-confirm" style="flex:1;" onclick="confirmarComRegra('{{ t.transaction_id }}', '{{ t.suggested_category }}')">✔ Confirmar</button>
+                                            <button type="button" class="btn btn-outline cancel-confirm" style="flex:1;" data-id="{{ t.transaction_id }}">Cancelar</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="edit-form-container" id="edit-{{ t.transaction_id }}" style="display: none;">
+                                        <select id="select-cat-{{ t.transaction_id }}" style="width:100%; margin-bottom:5px;" onchange="checarNovaCategoria(this, '{{ t.transaction_id }}')">
+                                            {% for cat in categorias %}
+                                                <option value="{{ cat }}" {% if cat == t.suggested_category %}selected{% endif %}>{{ cat }}</option>
+                                            {% endfor %}
+                                            <option value="NOVA" style="font-weight: bold; color: #3b82f6;">➕ Criar nova categoria...</option>
+                                        </select>
+                                        <input type="text" id="input-custom-{{ t.transaction_id }}" placeholder="Digite a nova categoria" style="width:100%; display:none; margin-bottom:5px;">
+                                        <div style="display:flex; align-items:center; gap:5px; margin-bottom:5px; font-size:0.85rem;">
+                                            <input type="checkbox" id="regra-{{ t.transaction_id }}" checked>
+                                            <label for="regra-{{ t.transaction_id }}">Criar regra para a palavra:</label>
+                                        </div>
+                                        <input type="text" id="palavra-{{ t.transaction_id }}" value="{{ t.description.split(' ')[0] }}" style="width:100%; margin-bottom:10px;">
+                                        <div style="display:flex; gap:5px;">
+                                            <button type="button" class="btn btn-primary" style="flex:1;" onclick="salvarEdicao('{{ t.transaction_id }}')">💾 Salvar</button>
+                                            <button type="button" class="btn btn-outline cancel-edit" style="flex:1;" data-id="{{ t.transaction_id }}">Cancelar</button>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <button type="button" class="btn btn-outline" style="color:#ef4444; padding:0.3rem 1rem;" 
+                                            onclick="enviarAcaoUnica('/excluir', '{{ t.transaction_id }}', null, true); event.preventDefault();">🗑️</button>                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="8" style="text-align:center; padding: 2rem;">Nenhuma transação encontrada. Faça o upload de um arquivo CSV ou OFX.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    <!-- Hidden form for single actions -->
+    <form id="form-acao-unica" method="POST" style="display: none;">
+        <input type="hidden" name="transaction_id" id="acao-id">
+        <input type="hidden" name="category" id="acao-cat">
+        <input type="hidden" name="criar_regra" id="acao-regra">
+        <input type="hidden" name="palavra_chave" id="acao-palavra">
+    </form>
+</div>
+
+<!-- Chart data passed from backend -->
+<script id="chart-labels-data" type="application/json">{{ labels_chart | tojson | safe }}</script>
+<script id="chart-values-data" type="application/json">{{ valores_chart | tojson | safe }}</script>
+
+<script>
+    // ========== TEMA ==========
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('giroTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        setTimeout(() => location.reload(), 100);
+    }
+    if (localStorage.getItem('giroTheme') === 'dark') document.body.classList.add('dark-mode');
+
+    // ========== FIX SCROLL: Salva e restaura a posição da página ==========
+    window.onscroll = function() { sessionStorage.setItem('giro_scroll_y', window.scrollY); };
+    window.onload = function() {
+        const scrollY = sessionStorage.getItem('giro_scroll_y');
+        if (scrollY) window.scrollTo(0, parseInt(scrollY));
+        updateStats();
+    };
+
+    // ========== STATS CARDS ==========
+    function updateStats() {
+        const rows = document.querySelectorAll('.transaction-row');
+        let total = rows.length;
+        let pending = 0, confirmed = 0;
+        let totalExpenses = 0;
+        rows.forEach(row => {
+            const status = row.dataset.status;
+            const amount = parseFloat(row.dataset.amount) || 0;
+            if (status === 'pending') pending++;
+            else if (status === 'confirmed') confirmed++;
+            if (amount < 0) totalExpenses += Math.abs(amount);
+        });
+        const statsGrid = document.getElementById('statsGrid');
+        statsGrid.innerHTML = `
+            <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-content"><h3>Total</h3><div class="value">${total}</div></div></div>
+            <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-content"><h3>Pendentes</h3><div class="value">${pending}</div></div></div>
+            <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-content"><h3>Confirmadas</h3><div class="value">${confirmed}</div></div></div>
+            <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-content"><h3>Total Despesas</h3><div class="value">R$ ${totalExpenses.toFixed(2)}</div></div></div>
+        `;
+    }
+
+    // ========== CONFIDENCE COLORS ==========
+    document.querySelectorAll('.confidence-cell').forEach(cell => {
+        let conf = parseFloat(cell.getAttribute('data-confidence'));
+        if (conf >= 80) cell.classList.add('confidence-high');
+        else if (conf >= 50) cell.classList.add('confidence-medium');
+        else cell.classList.add('confidence-low');
+    });
+
+    // ========== FILTER ==========
+    const filterSelect = document.getElementById('status-filter');
+    const rows = document.querySelectorAll('.transaction-row');
+    function applyFilter(val) {
+        rows.forEach(r => r.style.display = (val === 'all' || r.dataset.status === val) ? '' : 'none');
+    }
+    if (filterSelect) {
+        let saved = sessionStorage.getItem('giroFilterStatus') || 'all';
+        filterSelect.value = saved;
+        applyFilter(saved);
+        filterSelect.addEventListener('change', e => {
+            sessionStorage.setItem('giroFilterStatus', e.target.value);
+            applyFilter(e.target.value);
+        });
+    }
+
+    // ========== CHECK ALL ==========
+    function marcarTodos(source) {
+        document.querySelectorAll('.check-item').forEach(cb => {
+            if (cb.closest('tr').style.display !== 'none') cb.checked = source.checked;
+        });
+    }
+
+    // ========== EDIT INLINE ==========
+    document.addEventListener('click', e => {
+        if (e.target.closest('.confirm-btn')) {
+            let id = e.target.closest('.confirm-btn').dataset.id;
+            document.querySelectorAll('.confirm-form-container').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.action-buttons').forEach(el => el.style.display = 'flex');
+            document.getElementById('confirm-'+id).style.display = 'block';
+            document.getElementById('actions-'+id).style.display = 'none';
+        }
+        if (e.target.closest('.cancel-confirm')) {
+            let id = e.target.closest('.cancel-confirm').dataset.id;
+            document.getElementById('confirm-'+id).style.display = 'none';
+            document.getElementById('actions-'+id).style.display = 'flex';
+        }
+        if (e.target.closest('.edit-btn')) {
+            let id = e.target.closest('.edit-btn').dataset.id;
+            document.querySelectorAll('.edit-form-container').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.action-buttons').forEach(el => el.style.display = 'flex');
+            document.getElementById('edit-'+id).style.display = 'block';
+            document.getElementById('actions-'+id).style.display = 'none';
+        }
+        if (e.target.closest('.cancel-edit')) {
+            let id = e.target.closest('.cancel-edit').dataset.id;
+            document.getElementById('edit-'+id).style.display = 'none';
+            document.getElementById('actions-'+id).style.display = 'flex';
+        }
+    });
+
+    function confirmarComRegra(id, categoria) {
+        let criarRegra = document.getElementById('confirm-regra-'+id).checked ? 'on' : '';
+        let palavra = document.getElementById('confirm-palavra-'+id).value;
+        let form = document.getElementById('form-acao-unica');
+        form.action = '/confirmar';
+        document.getElementById('acao-id').value = id;
+        document.getElementById('acao-cat').value = categoria;
+        document.getElementById('acao-regra').value = criarRegra;
+        document.getElementById('acao-palavra').value = palavra;
+        form.submit();
+    }
+
+    function checarNovaCategoria(selectObj, id) {
+        let inputCustom = document.getElementById('input-custom-' + id);
+        inputCustom.style.display = (selectObj.value === 'NOVA') ? 'block' : 'none';
+        if (selectObj.value === 'NOVA') inputCustom.focus();
+    }
+
+    function salvarEdicao(id) {
+        let form = document.getElementById('form-acao-unica');
+        form.action = '/editar';
+        document.getElementById('acao-id').value = id;
+
+        let cat = document.getElementById('select-cat-' + id).value;
+        if (cat === 'NOVA') {
+            cat = document.getElementById('input-custom-' + id).value.trim();
+            if (!cat) return alert("Digite o nome da nova categoria!");
+        }
+        document.getElementById('acao-cat').value = cat;
+
+        let checkbox = document.getElementById('regra-' + id);
+        if (checkbox && checkbox.checked) {
+            document.getElementById('acao-regra').value = 'on';
+            document.getElementById('acao-palavra').value = document.getElementById('palavra-' + id).value;
+        } else {
+            document.getElementById('acao-regra').value = '';
+        }
+        form.submit();
+    }
+
+    // Função para enviar as ações sem bugar o layout
+    function enviarAcaoUnica(rota, id, categoria, pedirConfirmacao = false) {
+        if (pedirConfirmacao && !confirm("Tem certeza que deseja excluir?")) return;
+        document.getElementById('acao-id').value = id;
+        document.getElementById('acao-cat').value = categoria;
+        let form = document.getElementById('form-acao-unica');
+        form.action = rota;
+        form.submit();
+    }
+
+    // Fechar notificação manualmente
+    function fecharFlash(botao) {
+        botao.closest('.flash').remove();
+    }
+
+    // Auto-fechar após 5 segundos
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.flash').forEach((flash, index) => {
+            setTimeout(() => {
+                flash.style.transition = 'opacity 0.5s';
+                flash.style.opacity = '0';
+                setTimeout(() => flash.remove(), 500);
+            }, 5000);
+        });
+    });
+
+    // Mostrar/esconder formulário manual
+    function mostrarFormManual() {
+        document.getElementById('form-manual').style.display = 'block';
+    }
+    function fecharFormManual() {
+        document.getElementById('form-manual').style.display = 'none';
+    }
+
+    // ========== CHART ==========
+    document.addEventListener('DOMContentLoaded', () => {
+        const labelsData = document.getElementById('chart-labels-data')?.textContent;
+        const valuesData = document.getElementById('chart-values-data')?.textContent;
+        const chartLabels = labelsData ? JSON.parse(labelsData) : [];
+        const chartValues = valuesData ? JSON.parse(valuesData) : [];
+
+        if (chartLabels.length > 0) {
+            const isDark = document.body.classList.contains('dark-mode');
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartValues,
+                        backgroundColor: ['#ef4444', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'],
+                        borderWidth: 2,
+                        borderColor: isDark ? '#1e293b' : '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: isDark ? '#cbd5e1' : '#334155', font: { size: 12 } }
+                        },
+                        tooltip: { enabled: true }
+                    }
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>
